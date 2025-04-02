@@ -1,4 +1,4 @@
-Ref, Old Error, GQL, Cause
+Ref,Old Error,GQL,Cause
 CDC-001,"Given ChangeIdentifier describes a transaction that hasn't yet occurred",52N30,""
 CDC-002,"Invalid change identifier",52N16,"52N26"
 CDC-003,"Given change identifier does not belong to this database",52N16,"52N31"
