@@ -737,7 +737,7 @@ CYR-401,"The database requested does not exists. Requested database name: '$dbNa
 CYS-001,"The procedure registry is busy. You may retry this operation.",51N21,""
 CYS-002,"The procedure registry was modified by another transaction. You may retry this operation.",51N21,""
 CYS-003,"Unable to inject component to field `$field`, please ensure it is public and non-final: $wrappedError",51N00,"51N20"
-CYS-004,"Failed to invoke procedure `$name`: Caused by: $cause",52N37,"ev. 52U00"
+CYS-004,"Failed to invoke procedure `$name`: Caused by: $cause",52N37,"52U00 (only in some cases, otherwise rely on the generic error)"
 CYS-005,"Failed to invoke $typeAndName: Caused by: $cause",51N00,"50N00"
 CYS-006,"There is no procedure with the name `$name` registered for this database instance. Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.",42001,"42N08"
 CYS-007,"There is no procedure with internal id `$id` registered for this database instance.",42001,"42N08"
