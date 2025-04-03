@@ -1,107 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Neo4j Error Lookup</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f7f9fb;
-      color: #222;
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      background-color: #1b3c59;
-      color: white;
-      padding: 1.5rem 2rem;
-      text-align: center;
-      font-size: 1.6rem;
-      font-weight: 600;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 2rem;
-      background-color: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    }
-
-    label {
-      display: block;
-      margin-top: 1.5rem;
-      font-weight: 600;
-      color: #1b3c59;
-    }
-
-    textarea,
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-top: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-      resize: vertical;
-      font-family: inherit;
-    }
-
-    textarea[readonly],
-    input[readonly] {
-      background-color: #f0f3f6;
-      border: 1px solid #d4dce4;
-      color: #333;
-    }
-
-    footer {
-      text-align: center;
-      margin-top: 2rem;
-      font-size: 0.9rem;
-      color: #777;
-    }
-
-    .note {
-      font-size: 0.85rem;
-      color: #888;
-      margin-top: 0.5rem;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    Neo4j Error Message Lookup
-  </header>
-
-  <div class="container">
-    <label for="searchMessage">Search message:</label>
-    <textarea id="searchMessage" rows="4" placeholder="Type or paste an error message..."></textarea>
-
-    <label for="oldError">Old error message (used in Neo4j &lt= 5.x):</label>
-    <textarea id="oldError" rows="4" readonly></textarea>
-
-    <label for="gqlCode">GQL Code (used in Neo4j &gt 5.x):</label>
-    <input type="text" id="gqlCode" readonly />
-
-    <label for="cause">Cause (used in Neo4j &gt 5.x):</label>
-    <input type="text" id="cause" readonly />
-
-    <p class="note">If you were using string comparison on the error message to classify errors, use this tool to find a GQL code to compare against instead</p>
-  </div>
-
-  <footer>
-    &copy; 2025 Neo4j
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="script.js"></script>
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Neo4j Error Lookup</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+                    
+                    <style>
+                        body {
+                            font-family: 'Inter', sans-serif;
+                            background-color: #f7f9fb;
+                            color: #222;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        
+                        header {
+                            background-color: #1b3c59;
+                            color: white;
+                            padding: 1.5rem 2rem;
+                            text-align: center;
+                            font-size: 1.6rem;
+                            font-weight: 600;
+                        }
+                        
+                        .container {
+                            max-width: 800px;
+                            margin: 2rem auto;
+                            padding: 2rem;
+                            background-color: white;
+                            border-radius: 16px;
+                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+                        }
+                        
+                        label {
+                            display: block;
+                            margin-top: 1.5rem;
+                            font-weight: 600;
+                            color: #1b3c59;
+                        }
+                        
+                        textarea,
+                        input {
+                            width: 100%;
+                            padding: 12px;
+                            margin-top: 0.5rem;
+                            border: 1px solid #ccc;
+                            border-radius: 8px;
+                            font-size: 1rem;
+                            resize: vertical;
+                            font-family: inherit;
+                        }
+                        
+                        textarea[readonly],
+                        input[readonly] {
+                            background-color: #f0f3f6;
+                            border: 1px solid #d4dce4;
+                            color: #333;
+                        }
+                        
+                        footer {
+                            text-align: center;
+                            margin-top: 2rem;
+                            font-size: 0.9rem;
+                            color: #777;
+                        }
+                        
+                        .note {
+                            font-size: 0.85rem;
+                            color: #888;
+                            margin-top: 0.5rem;
+                        }
+                        
+                        .input-row {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                        }
+                        
+                        .link-button {
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 6px 10px;
+                            border: none;
+                            border-radius: 6px;
+                            background-color: #1b3c59;
+                            color: white;
+                            font-weight: bold;
+                            text-decoration: none;
+                            font-size: 1rem;
+                            cursor: pointer;
+                            transition: background-color 0.2s ease;
+                        }
+                        
+                        .link-button:disabled,
+                        .link-button[disabled] {
+                            background-color: #ccc;
+                            pointer-events: none;
+                            cursor: not-allowed;
+                        }
+                    </style>
+    </head>
+    <body>
+        <header>
+            Neo4j Error Message Lookup
+        </header>
+        
+        <div class="container">
+            <label for="searchMessage">Search message:</label>
+            <textarea id="searchMessage" rows="4" placeholder="Type or paste an error message..."></textarea>
+            
+            <p class="note">Earlier versions of Neo4j (&lt= 5.x) lacked a reliable error code, which forced applications to rely on error messages instead. Relying on the error message is now deprecated, and instead applications should rely on the GQL-status. Type or paste a message that your application replies on above and you will find the new GQLSTATUS to rely on below.</p>
+            
+            <label for="oldError">Old error message (used in Neo4j &lt= 5.x):</label>
+            <textarea id="oldError" rows="4" readonly></textarea>
+            
+            <p class="note">This was the error message used before. It still exists, but is deprecated and will be removed, and instead the GQL-status/cause should be used</p>
+            
+            <label for="gqlCode">GQLSTATUS - detailed (used in Neo4j &gt 5.x):</label>
+            <div class="input-row">
+                <input type="text" id="gqlCode" readonly />
+                <a id="gqlLink" title="Try to open documentation (may not work for all codes)" class="link-button" href="#" target="_blank" disabled>↗</a>
+            </div>
+            
+            <label for="cause">GQLSTATUS - generic (used in Neo4j &gt 5.x):</label>
+            <div class="input-row">
+                <input type="text" id="gqlCodeGeneric" readonly />
+                <a id="genericLink" title="Try to open documentation (may not work for all codes)" class="link-button" href="#" target="_blank" disabled>↗</a>
+            </div>
+            
+            <p class="note">Depending on your application you may want to rely either on the detailed or more generic code (where available). Note that in some cases the detailed code can vary for the same old error message.</p>
+            <p class="note">Either way you will have to look in all levels of the error stack. For the Java driver (for example) there is a method in <b>Neo4jException</b> called <b>gqlStatus()</b> that returns the codes as shown here, but there is also a <b>gqlCause()</b> that returns another <b>Neo4jException</b>, which in turn may have another cause. The detailed/generic codes shown here will show up in one of the levels of this call stack, but you may need to check all of them.</p>
+        </div>
+        
+        <footer>
+            &copy; 2025 Neo4j
+        </footer>
+        
+        <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+        <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+        <script src="script.js"></script>
+    </body>
 </html>
