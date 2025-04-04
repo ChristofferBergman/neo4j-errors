@@ -42,6 +42,11 @@
                             color: #1b3c59;
                         }
                         
+                        .dialog-title {
+                            display: block;
+                            color: #1b3c59;
+                        }
+                        
                         textarea,
                         input {
                             width: 100%;
@@ -103,7 +108,7 @@
                             cursor: not-allowed;
                         }
                         
-                        .result-list {
+                        .list {
                             list-style: none;
                             padding: 0;
                             margin: 0.5rem 0;
@@ -112,27 +117,36 @@
                             min-height: 200px;
                             max-height: 200px;
                             overflow-y: auto;
+                            overflow-x: auto;
                         }
                         
-                        .result-list li {
+                        .list li {
                             padding: 10px;
                             cursor: pointer;
                             border-bottom: 1px solid #eee;
                             transition: background 0.2s;
+                            text-align: left;
                             
                             white-space: nowrap;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
                             font-size: 0.95rem;
                         }
                         
-                        .result-list li:last-child {
+                        .list li:last-child {
                             border-bottom: none;
                         }
                         
-                        .result-list li:hover,
-                        .result-list li.selected {
+                        .list li:hover,
+                        .list li.selected {
                             background-color: #e1ecf7;
+                        }
+                        
+                        .result-list {
+                            
+                        }
+                        
+                        .result-list li {
+                            overflow: hidden;
+                            text-overflow: ellipsis;
                         }
                     </style>
     </head>
@@ -148,7 +162,7 @@
             <p class="note">Earlier versions of Neo4j (&lt= 5.x) lacked a reliable error code, which forced applications to rely on error messages instead. Relying on the error message is now deprecated, and instead applications should rely on the GQL-status. Type or paste a message that your application replies on above and you will find the new GQLSTATUS to rely on below.</p>
             
             <label for="searchResults">Top matches:</label>
-            <ul id="searchResults" class="result-list"></ul>
+            <ul id="searchResults" class="list result-list"></ul>
             
             <label for="oldError">Old error message (used in Neo4j &lt= 5.x):</label>
             <textarea id="oldError" rows="4" readonly></textarea>
@@ -158,6 +172,7 @@
             <label for="gqlCode">GQLSTATUS - detailed (used in Neo4j &gt 5.x):</label>
             <div class="input-row">
                 <input type="text" id="gqlCode" readonly />
+                <button title="Copy code to clipboard" class="link-button" onclick="navigator.clipboard.writeText(document.getElementById('gqlCode').value)">Copy</button>
                 <button id="gqlOthers" onclick="viewOthersWithGql()" title="See all old error messages that now uses this code" class="link-button" disabled>Other&nbsp;Errors</button>
                 <a id="gqlLink" title="Try to open documentation (may not work for all codes)" class="link-button" href="#" target="_blank" disabled>Docs</a>
             </div>
@@ -165,6 +180,7 @@
             <label for="cause">GQLSTATUS - generic (used in Neo4j &gt 5.x):</label>
             <div class="input-row">
                 <input type="text" id="gqlCodeGeneric" readonly />
+                <button title="Copy code to clipboard" class="link-button" onclick="navigator.clipboard.writeText(document.getElementById('gqlCodeGeneric').value)">Copy</button>
                 <button id="genericOthers" onclick="viewOthersWithGenericGql()" title="See all old error messages that now uses this code" class="link-button" disabled>Other&nbsp;Errors</button>
                 <a id="genericLink" title="Try to open documentation (may not work for all codes)" class="link-button" href="#" target="_blank" disabled>Docs</a>
             </div>
