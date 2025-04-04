@@ -136,7 +136,7 @@ function selectResult(index) {
 
 // Main
 (async function () {
-    const csvUrl = "https://raw.githubusercontent.com/ChristofferBergman/neo4j-errors/refs/heads/main/errors.csv";
+    const csvUrl = "./errors.csv";
     data = await loadCSV(csvUrl);
     
     // Initialize Fuse (i.e. Fuzzy searcher)
