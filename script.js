@@ -8,8 +8,8 @@ const searchResultsList = document.getElementById('searchResults');
 
 let data = null;
 let currentResults = [];
-let othersWithGql = "";
-let othersWithGeneric = "";
+let othersWithGql = [];
+let othersWithGeneric = [];
 
 async function viewOthersWithGql() {
     viewOthers(othersWithGql, gqlCodeField.value);
@@ -20,26 +20,27 @@ async function viewOthersWithGenericGql() {
 }
 
 async function viewOthers(content, code) {
+    const listHtml = `
+          <ul class="list">
+          ${content.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+        </ul>
+      `;
+    
     Swal.fire({
-        title: 'Other errors using ' + code,
-        input: 'textarea',
-        inputValue: content,
-        showCancelButton: false,
+        title: 'All errors using ' + code,
+        html: listHtml,
         confirmButtonText: 'Close',
-        showConfirmButton: true,
-        didOpen: () => {
-            const textarea = Swal.getInput();
-            if (textarea) {
-                textarea.readOnly = true;
-                textarea.wrap = 'off';
-                textarea.style.whiteSpace = 'pre';
-                textarea.style.overflowX = 'auto';
-                textarea.style.cursor = 'default';
-                textarea.style.backgroundColor = '#f9f9f9';
-                textarea.scrollTop = 0;
-            }
-        }
+        customClass: {
+            confirmButton: 'link-button',
+            title: 'dialog-title'
+          }
     });
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.innerText = str;
+    return div.innerHTML;
 }
 
 // Helper to fetch and parse the CSV
@@ -54,11 +55,10 @@ async function loadCSV(url) {
 }
 
 function loadOtherErrors(code) {
-    let errors = 'Each line represents an error\n------------------------------';
+    let errors = [];
     for (const row of data) {
         if (row['GQL'] == code || row['Cause'] == code) {
-            errors += '\n';
-            errors += row['Old Error'];
+            errors.push(row['Old Error']);
         }
     }
     return errors;
