@@ -102,6 +102,38 @@
                             pointer-events: none;
                             cursor: not-allowed;
                         }
+                        
+                        .result-list {
+                            list-style: none;
+                            padding: 0;
+                            margin: 0.5rem 0;
+                            border: 1px solid #ccc;
+                            border-radius: 8px;
+                            min-height: 200px;
+                            max-height: 200px;
+                            overflow-y: auto;
+                        }
+                        
+                        .result-list li {
+                            padding: 10px;
+                            cursor: pointer;
+                            border-bottom: 1px solid #eee;
+                            transition: background 0.2s;
+                            
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            font-size: 0.95rem;
+                        }
+                        
+                        .result-list li:last-child {
+                            border-bottom: none;
+                        }
+                        
+                        .result-list li:hover,
+                        .result-list li.selected {
+                            background-color: #e1ecf7;
+                        }
                     </style>
     </head>
     <body>
@@ -115,6 +147,9 @@
             
             <p class="note">Earlier versions of Neo4j (&lt= 5.x) lacked a reliable error code, which forced applications to rely on error messages instead. Relying on the error message is now deprecated, and instead applications should rely on the GQL-status. Type or paste a message that your application replies on above and you will find the new GQLSTATUS to rely on below.</p>
             
+            <label for="searchResults">Top matches:</label>
+            <ul id="searchResults" class="result-list"></ul>
+            
             <label for="oldError">Old error message (used in Neo4j &lt= 5.x):</label>
             <textarea id="oldError" rows="4" readonly></textarea>
             
@@ -123,13 +158,15 @@
             <label for="gqlCode">GQLSTATUS - detailed (used in Neo4j &gt 5.x):</label>
             <div class="input-row">
                 <input type="text" id="gqlCode" readonly />
-                <a id="gqlLink" title="Try to open documentation (may not work for all codes)" class="link-button" href="#" target="_blank" disabled>↗</a>
+                <button id="gqlOthers" onclick="viewOthersWithGql()" title="See all old error messages that now uses this code" class="link-button" disabled>Other&nbsp;Errors</button>
+                <a id="gqlLink" title="Try to open documentation (may not work for all codes)" class="link-button" href="#" target="_blank" disabled>Docs</a>
             </div>
             
             <label for="cause">GQLSTATUS - generic (used in Neo4j &gt 5.x):</label>
             <div class="input-row">
                 <input type="text" id="gqlCodeGeneric" readonly />
-                <a id="genericLink" title="Try to open documentation (may not work for all codes)" class="link-button" href="#" target="_blank" disabled>↗</a>
+                <button id="genericOthers" onclick="viewOthersWithGenericGql()" title="See all old error messages that now uses this code" class="link-button" disabled>Other&nbsp;Errors</button>
+                <a id="genericLink" title="Try to open documentation (may not work for all codes)" class="link-button" href="#" target="_blank" disabled>Docs</a>
             </div>
             
             <p class="note">Depending on your application you may want to rely either on the detailed or more generic code (where available). Note that in some cases the detailed code can vary for the same old error message.</p>
@@ -140,6 +177,7 @@
             &copy; 2025 Neo4j
         </footer>
         
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
         <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
         <script src="script.js"></script>
