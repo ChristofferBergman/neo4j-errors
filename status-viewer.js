@@ -28,33 +28,43 @@ function renderStatusList() {
 
 function renderGqlCauseList() {
     const rows = data.filter(row => row.Status === selectedStatus);
-    const gqlCauseMap = {};
+    const valueMap = {};
     
+    // Collect individual GQL and Cause values
     rows.forEach(row => {
-        const key = `${row.GQL}::${row.Cause}`;
-        gqlCauseMap[key] = gqlCauseMap[key] || [];
-        gqlCauseMap[key].push(row);
+        if (row.GQL && row.GQL !== "N/A") {
+            valueMap[row.GQL] = valueMap[row.GQL] || [];
+            valueMap[row.GQL].push(row);
+        }
+        if (row.Cause && row.Cause !== "N/A") {
+            valueMap[row.Cause] = valueMap[row.Cause] || [];
+            valueMap[row.Cause].push(row);
+        }
     });
     
-    // Determine uniqueness
-    const gqlCauseUsage = {};
+    // Usage map: how many different Statuses use each value
+    const usageMap = {};
     data.forEach(row => {
-        const key = `${row.GQL}::${row.Cause}`;
-        gqlCauseUsage[key] = gqlCauseUsage[key] || new Set();
-        gqlCauseUsage[key].add(row.Status);
+        if (row.GQL && row.GQL !== "N/A") {
+            usageMap[row.GQL] = usageMap[row.GQL] || new Set();
+            usageMap[row.GQL].add(row.Status);
+        }
+        if (row.Cause && row.Cause !== "N/A") {
+            usageMap[row.Cause] = usageMap[row.Cause] || new Set();
+            usageMap[row.Cause].add(row.Status);
+        }
     });
     
     gqlCauseList.innerHTML = '';
-    Object.entries(gqlCauseMap).forEach(([key, rows]) => {
+    Object.keys(valueMap).sort().forEach(value => {
         const li = document.createElement('li');
-        const [gql, cause] = key.split('::');
-        li.textContent = `${gql} – ${cause}`;
+        li.textContent = value;
         
-        const usage = gqlCauseUsage[key];
+        const usage = usageMap[value];
         li.classList.add(usage.size === 1 ? 'unique' : 'shared');
         
         li.addEventListener('click', () => {
-            selectedGqlCauseKey = key;
+            selectedGqlCauseKey = value;
             highlightSelected(gqlCauseList, li);
             renderErrorList();
         });
@@ -64,11 +74,12 @@ function renderGqlCauseList() {
 }
 
 function renderErrorList() {
-    const [gql, cause] = selectedGqlCauseKey.split('::');
+    const value = selectedGqlCauseKey;
     const rows = data.filter(row =>
                              row.Status === selectedStatus &&
-                             (row.GQL === gql || row.Cause === cause)
+                             (row.GQL === value || row.Cause === value)
                              );
+    
     errorList.innerHTML = '';
     rows.forEach(row => {
         const li = document.createElement('li');
