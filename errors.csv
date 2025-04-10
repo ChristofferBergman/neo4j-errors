@@ -528,8 +528,8 @@ CYS-036,Maps are required to have `String` keys - but this map has `$type` keys.
 CYS-037,Failed to load $signatureName,52N34/53N34,,Neo.ClientError.Procedure.ProcedureRegistrationFailed
 CYS-038,$name is unavailable because it is sandboxed and has dependencies outside of the sandbox. Sandboxing is controlled by the dbms.security.procedures.unrestricted setting. Only unrestrict procedures you can trust with access to database internals.,N/A,,Neo.ClientError.Procedure.ProcedureRegistrationFailed
 CYS-039,Default value `$value` could not be parsed as a $type,51N00,51N16,Neo.ClientError.Procedure.ProcedureRegistrationFailed
-CYS-040,"It is not allowed to define procedures or functions in the reserved namespaces $namespaceList, consider using a proper package name instead e.g. \""org.example.com.$name\""",51N00,51N17,Neo.ClientError.Procedure.ProcedureRegistrationFailed
-CYS-041,"It is not allowed to define functions in the root namespace. Please define a namespace, e.g. `@UserFunction(\""org.example.com.$name\"")",51N00,51N17,Neo.ClientError.Procedure.ProcedureRegistrationFailed
+CYS-040,"It is not allowed to define procedures or functions in the reserved namespaces $namespaceList, consider using a proper package name instead e.g. ""org.example.com.$name""",51N00,51N17,Neo.ClientError.Procedure.ProcedureRegistrationFailed
+CYS-041,"It is not allowed to define functions in the root namespace. Please define a namespace, e.g. `@UserFunction(""org.example.com.$name"")",51N00,51N17,Neo.ClientError.Procedure.ProcedureRegistrationFailed
 CYS-042,"Procedures must return a Stream of records, where a record is a concrete class that you define and not a raw Stream.",51N00,51N18,Neo.ClientError.Procedure.TypeError
 CYS-043,"Procedures must return a Stream of records, where a record is a concrete class that you define and not a raw Stream<?>.",51N00,51N18,Neo.ClientError.Procedure.TypeError
 CYS-044,"Procedures must return a Stream of records, where a record is a concrete class that you define and not a parameterized type such as $type.",51N00,51N18,Neo.ClientError.Procedure.TypeError
