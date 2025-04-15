@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Neo4j Error Lookup</title>
+        <link rel="icon" href="https://neo4j.com/favicon.ico" type="image/x-icon" />
+        <link rel="stylesheet" href="style.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+    </head>
+    <body>
+        <header>
+            Neo4j Error Lookup
+        </header>
+        
+        <div class="container">
+            <!--<center><img src="./errors.png"></center>-->
+            <p class="note">Earlier versions of Neo4j (&lt= 5.x) lacked a reliable error code, which forced applications to either rely on the less reliable Neo4j Status Code or the actual error messages instead. Relying on the Neo4j status code or the textual error message is now deprecated, and instead applications should rely on the new GQLSTATUS code. This tool will help you figure out what GQLSTATUS to use.</p>
+            
+            <center>
+            <p><a title="Find GQLSTATUS codes to replace a Neo4j Status Code" class="link-button" href="./status-lookup.html">Neo4j Status Code lookup</a></p>
+            
+            <p><a title="Search for old message codes to find what GQLSTATUS code to use instead" class="link-button" href="./message-lookup.html">Neo4j Message Searcher</a></p>
+            </center>
+            
+            <p class="note">Alternatively you can investigate the correlation between old error messages, Neo4j status codes and the new GQL codes yourself. All of this is available in a Neo4j instance that can be accessed with these credentials:<br/>
+            URL: <b>neo4j+s://452e7e61.databases.neo4j.io</b><br/>
+            DB name: <b>neo4j</b><br/>
+            User: <b>errorexplorer</b><br/>
+            PW: <b>0e?5\y{K?|$,y73v1v0#W-XK</b><br/>
+            The data model looks like this:<br/></p>
+            <p><center><img src="./error_model.png"></center><br/></p>
+            <p class="note">Each <b>Error</b> node represents one error as seen in the earlier versions. It has a <b>reference</b> property used just as a unique identifier, this isn't seen anywhere in the software or protocol. It also has the <b>olderror</b> property, which is the now deprecated error message template. All errors point to a <b>Neo4jStatus</b> node with the Neo4j Status Code used in earlier versions (also deprecated now). Many errors point to the same Neo4j Status Code. All errors also points to a <b>GqlStatus</b> code with a <b>GQLSTATUS</b> relationship (also here many errors can point to the same GqlStatus). In some cases this code is a more generic code, and in those cases it also has a <b>Cause</b> relationship to a more specific code.
+            </p>
+            
+        </div>
+        
+        <footer>
+            &copy; 2025 Neo4j
+        </footer>
+    </body>
+</html>
