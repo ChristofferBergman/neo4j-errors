@@ -43,15 +43,38 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
-// Helper to fetch and parse the CSV
-async function loadCSV(url) {
-    const response = await fetch(url);
-    const text = await response.text();
-    const parsed = Papa.parse(text, {
-        header: true,
-        skipEmptyLines: true,
-    });
-    return parsed.data;
+async function loadData() {
+    const driver = neo4j.driver(
+                                'neo4j+s://452e7e61.databases.neo4j.io',
+                                neo4j.auth.basic('errorexplorer', '0e?5\\y{K?|$,y73v1v0#W-XK')
+                                );
+    const session = driver.session();
+    
+    try {
+        const result = await session.executeRead(tx => tx.run(
+                 `MATCH (e:Error)
+                 MATCH (e)-[:GQLSTATUS]->(g:GqlStatus)
+                 OPTIONAL MATCH (e)-[:CAUSE]->(c:GqlStatus)
+                 RETURN e.reference AS Ref, e.olderror AS \`Old Error\`, g.code AS GQL, c.code AS Cause`
+                                         ));
+        
+        const data = result.records.map(record => {
+            return {
+                Ref: record.get('Ref') ?? '',
+                'Old Error': record.get('Old Error') ?? '',
+                GQL: record.get('GQL') ?? '',
+                Cause: record.get('Cause') ?? '',
+            };
+        });
+        
+        return data;
+    } catch (error) {
+        console.error("Neo4j query error:", error);
+        return null;
+    } finally {
+        await session.close();
+        await driver.close();
+    }
 }
 
 function loadOtherErrors(code) {
@@ -66,9 +89,13 @@ function loadOtherErrors(code) {
 
 // Update the link buttons
 function updateLink(field, secondary, gqlCode) {
+    if (gqlCode.includes('/')) {
+        gqlCode = gqlCode.substring(0, gqlCode.indexOf('/'));
+    }
+    
     const docUrl = `https://neo4j.com/docs/status-codes/current/errors/gql-errors/${gqlCode}/`;
     
-    if (gqlCode == '' || gqlCode.includes('|') || gqlCode.includes(',') || gqlCode.includes(' ') || gqlCode.length != 5) {
+    if (gqlCode == '' || gqlCode.includes('/') || gqlCode.includes('|') || gqlCode.includes(',') || gqlCode.includes(' ') || gqlCode.length != 5) {
         secondary.setAttribute('disabled', 'true');
         field.setAttribute('disabled', 'true');
     } else {
@@ -136,8 +163,7 @@ function selectResult(index) {
 
 // Main
 (async function () {
-    const csvUrl = "./errors.csv";
-    data = await loadCSV(csvUrl);
+    data = await loadData();
     
     // Initialize Fuse (i.e. Fuzzy searcher)
     const fuse = new Fuse(data, {
