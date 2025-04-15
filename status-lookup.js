@@ -161,7 +161,7 @@ async function fetchMissingErrors(session, status, codes) {
 async function fetchExtraErrors(session, status, codes) {
     const result = await session.executeRead(tx => tx.run(
         `MATCH (e:Error)-[:NEO4JSTATUS]->(n:Neo4jStatus)
-        WHERE n.code <> status
+        WHERE n.code <> $status
         MATCH (e)-[:GQLSTATUS|CAUSE]->(g:GqlStatus)
         WHERE g.code IN $codes
         RETURN e.olderror AS error
