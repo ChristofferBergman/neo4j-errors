@@ -56,39 +56,18 @@ async function renderResultForStatus(status) {
         // See what errors we would miss by just checking for those
         let missing = await fetchMissingErrors(session, status, exclusive);
         
-        // Now see if we can trim the list without missing more errors
-        const filtered = [];
-        for (const code of exclusive) {
-            const sublist = exclusive.filter(c => c !== code);
-            const m = await fetchMissingErrors(session, status, sublist);
-            
-            if (m.length > missing.length) {
-                filtered.push(code);
-            }
-        }
-        exclusive = filtered;
-        
         // Find all GQLSTATUS codes used by this Neo4j Status (even if used by others)
-        let all = await fetchAllCodes(session, status);
-        
-        // Again try to trim it
-        const filtered2 = [];
-        for (const code of all) {
-            const sublist = all.filter(c => c !== code);
-            const m = await fetchMissingErrors(session, status, sublist);
-            
-            if (m.length != 0) {
-                filtered2.push(code);
-            }
-        }
-        all = filtered2;
+        let additional = await fetchAllCodes(session, status);
         
         // See what extra errors we would get by checking for all those
-        let extra = await fetchExtraErrors(session, status, exclusive);
+        let extra = await fetchExtraErrors(session, status, additional);
+        
+        // Remove the exclusive errors from the additional
+        additional = additional.filter(code => !exclusive.includes(code));
         
         if (exclusive.length === 0) {
             result.value = 'There are no GQLSTATUS codes that would only catch ' + status + ' errors\n';
-            addAlternative(status, all, extra);
+            addAlternative(status, additional, extra);
         }
         else if (missing.length === 0) {
             result.value = 'You catch all errors of ' + status + ' by checking for these GQLSTATUS codes:\n';
@@ -99,7 +78,7 @@ async function renderResultForStatus(status) {
             result.value += '\n\nBut you would not catch these errors:\n';
             missing.forEach(code => result.value += ('\n   \"' + code + '\"'));
             result.value += '\n\nThe reason is that the GQLSTATUS of those are shared with other Neo4j Status codes\n';
-            addAlternative(status, all, extra);
+            addAlternative(status, additional, extra);
         }
     } catch (error) {
         console.error("Neo4j query error:", error);
@@ -111,7 +90,7 @@ async function renderResultForStatus(status) {
 }
 
 function addAlternative(status, all, extra) {
-    result.value += '\nTo catch all ' + status + ' errors you would need to check for all these\n';
+    result.value += '\nTo catch all ' + status + ' errors you would also need to check for these\n';
     all.forEach(code => result.value += ('\n * ' + code));
     result.value += '\n\nBut that would also give you these errors that is not of this status:\n';
     extra.forEach(code => result.value += ('\n   \"' + code + '\"'));
