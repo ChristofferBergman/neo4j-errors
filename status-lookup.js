@@ -69,7 +69,7 @@ async function renderResultForStatus(status) {
         exclusive = filtered;
         
         // Find all GQLSTATUS codes used by this Neo4j Status (even if used by others)
-        let all = await fetchAllExclusiveCodes(session, status);
+        let all = await fetchAllCodes(session, status);
         
         // Again try to trim it
         const filtered2 = [];
@@ -84,7 +84,7 @@ async function renderResultForStatus(status) {
         all = filtered2;
         
         // See what extra errors we would get by checking for all those
-        let extra = await fetchMissingErrors(session, status, exclusive);
+        let extra = await fetchExtraErrors(session, status, exclusive);
         
         if (exclusive.length === 0) {
             result.value = 'There are no GQLSTATUS codes that would only catch ' + status + ' errors\n';
