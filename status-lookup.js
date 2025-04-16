@@ -1,3 +1,5 @@
+import createApp from "https://unpkg.com/@neo4j-nvl/core@latest/dist/index.js";
+
 const statusSearch = document.getElementById('statusSearch');
 const statusList = document.getElementById('statusList');
 const result = document.getElementById('result');
@@ -5,6 +7,8 @@ const result = document.getElementById('result');
 const url = 'neo4j+s://452e7e61.databases.neo4j.io';
 const user = 'errorexplorer';
 const pw = '0e?5\\y{K?|$,y73v1v0#W-XK';
+
+let app;
 
 let filteredStatusList = [];
 let allStatuses = [];
@@ -41,45 +45,60 @@ statusSearch.addEventListener('input', () => {
 (async function init() {
     allStatuses = await loadStatus();
     filterStatuses('');
+    
+    const container = document.getElementById("graph");
+    app = await createApp({
+        container,
+        initialGraphData: {
+            nodes: [],            // empty at start
+            relationships: []
+        }
+    });
+    
+    app.render();
 })();
 
-// Placeholder: function to populate the GQL list later
 async function renderResultForStatus(status) {
-    result.value = 'Please wait...';
     const driver = neo4j.driver(url,neo4j.auth.basic(user, pw));
     const session = driver.session();
     
     try {
-        // Find all GQLSTATUS codes only used by this Neo4j Status
-        let exclusive = await fetchAllExclusiveCodes(session, status);
+        const result = await session.executeRead(tx => tx.run(
+                 `MATCH (s1:Neo4jStatus {status: $status})<-[r1:NEO4JSTATUS]-(e1:Error)-[r2:GQLSTATUS|CAUSE]->(g:GqlStatus)<-[r3:GQLSTATUS|CAUSE]-(e2:Error)-[r4:NEO4JSTATUS]->(s2:Neo4jStatus)
+                  RETURN *
+                 `, {status}));
         
-        // See what errors we would miss by just checking for those
-        let missing = await fetchMissingErrors(session, status, exclusive);
+        const nodesMap = new Map();
+        const relationships = [];
         
-        // Find all GQLSTATUS codes used by this Neo4j Status (even if used by others)
-        let additional = await fetchAllCodes(session, status);
+        result.records.forEach(record => {
+            record.values.forEach(value => {
+                if (value instanceof neo4j.types.Node) {
+                    if (!nodesMap.has(value.identity.toString())) {
+                        nodesMap.set(value.identity.toString(), {
+                            id: value.identity.toString(),
+                            labels: value.labels,
+                            properties: value.properties
+                        });
+                    }
+                }
+                else if (value instanceof neo4j.types.Relationship) {
+                    relationships.push({
+                        id: value.identity.toString(),
+                        type: value.type,
+                        startNode: value.start.toString(),
+                        endNode: value.end.toString(),
+                        properties: value.properties
+                    });
+                }
+            });
+        });
         
-        // See what extra errors we would get by checking for all those
-        let extra = await fetchExtraErrors(session, status, additional);
-        
-        // Remove the exclusive errors from the additional
-        additional = additional.filter(code => !exclusive.includes(code));
-        
-        if (exclusive.length === 0) {
-            result.value = 'There are no GQLSTATUS codes that would only catch ' + status + ' errors\n';
-            addAlternative(status, additional, extra);
-        }
-        else if (missing.length === 0) {
-            result.value = 'You catch all errors of ' + status + ' by checking for these GQLSTATUS codes:\n';
-            exclusive.forEach(code => result.value += ('\n * ' + code));
-        } else {
-            result.value = 'You catch some errors of ' + status + ' by checking for these GQLSTATUS codes:\n';
-            exclusive.forEach(code => result.value += ('\n * ' + code));
-            result.value += '\n\nBut you would not catch these errors:\n';
-            missing.forEach(code => result.value += ('\n   \"' + code + '\"'));
-            result.value += '\n\nThe reason is that the GQLSTATUS of those are shared with other Neo4j Status codes\n';
-            addAlternative(status, additional, extra);
-        }
+        // Update NVL
+        app.update({
+            nodes: Array.from(nodesMap.values()),
+            relationships
+        });
     } catch (error) {
         console.error("Neo4j query error:", error);
         return null;
@@ -87,66 +106,6 @@ async function renderResultForStatus(status) {
         await session.close();
         await driver.close();
     }
-}
-
-function addAlternative(status, all, extra) {
-    result.value += '\nTo catch all ' + status + ' errors you would also need to check for these\n';
-    all.forEach(code => result.value += ('\n * ' + code));
-    result.value += '\n\nBut that would also give you these errors that is not of this status:\n';
-    extra.forEach(code => result.value += ('\n   \"' + code + '\"'));
-}
-
-async function fetchAllExclusiveCodes(session, status) {
-    const result = await session.executeRead(tx => tx.run(
-        `MATCH (e:Error)-[:NEO4JSTATUS]->(n:Neo4jStatus {code: $status}),
-        (e)-[:GQLSTATUS|CAUSE]->(g:GqlStatus)
-        WHERE g.code <> "N/A"
-        WITH DISTINCT g.code AS code
-        WHERE NOT EXISTS {
-           MATCH (otherError:Error)-[:NEO4JSTATUS]->(otherNeo:Neo4jStatus),
-                 (otherError)-[:GQLSTATUS|CAUSE]->(otherGql:GqlStatus)
-           WHERE otherNeo.code <> $status AND otherGql.code = code
-        }
-        RETURN code
-        `, {status}));
-    
-    return result.records.map(record => record.get('code'));
-}
-
-async function fetchAllCodes(session, status) {
-    const result = await session.executeRead(tx => tx.run(
-        `MATCH (e:Error)-[:NEO4JSTATUS]->(n:Neo4jStatus {code: $status}),
-        (e)-[:GQLSTATUS|CAUSE]->(g:GqlStatus)
-        WHERE g.code <> "N/A"
-        RETURN DISTINCT g.code AS code
-        `, {status}));
-    
-    return result.records.map(record => record.get('code'));
-}
-
-async function fetchMissingErrors(session, status, codes) {
-    const result = await session.executeRead(tx => tx.run(
-        `MATCH (e:Error)-[:NEO4JSTATUS]->(n:Neo4jStatus {code: $status})
-        OPTIONAL MATCH (e)-[:GQLSTATUS|CAUSE]->(g:GqlStatus)
-        WHERE g.code IN $codes
-        WITH e, COUNT(g) AS c
-        WHERE c = 0
-        RETURN e.olderror AS error
-        `, {status, codes}));
-    
-    return result.records.map(record => record.get('error'));
-}
-
-async function fetchExtraErrors(session, status, codes) {
-    const result = await session.executeRead(tx => tx.run(
-        `MATCH (e:Error)-[:NEO4JSTATUS]->(n:Neo4jStatus)
-        WHERE n.code <> $status
-        MATCH (e)-[:GQLSTATUS|CAUSE]->(g:GqlStatus)
-        WHERE g.code IN $codes
-        RETURN e.olderror AS error
-        `, {status, codes}));
-    
-    return result.records.map(record => record.get('error'));
 }
 
 async function loadStatus() {
