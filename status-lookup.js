@@ -1,4 +1,4 @@
-import createApp from "https://unpkg.com/@neo4j-nvl/core@latest/dist/index.js";
+import createApp from "https://cdn.skypack.dev/@neo4j-nvl/core";
 
 const statusSearch = document.getElementById('statusSearch');
 const statusList = document.getElementById('statusList');
